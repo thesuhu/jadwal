@@ -1,0 +1,32 @@
+{
+  "name": "jadwal",
+  "version": "1.0.1",
+  "description": "Personal to-do list, organized as a simple, yet effective tool for task management",
+  "main": "index.js",
+  "bin": {
+    "jadwal": "./cli.js"
+  },
+  "scripts": {
+    "start": "node cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesuhu/jadwal"
+  },
+  "keywords": [
+    "task",
+    "todo",
+    "jadwal",
+    "list",
+    "schedule"
+  ],
+  "author": "thesuhu <thesuhu@protonmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@thesuhu/colorconsole": "^1.0.5",
+    "dotenv": "^16.4.5",
+    "fs-extra": "^11.2.0",
+    "readline-sync": "^1.4.10",
+    "simple-git": "^3.25.0"
+  }
+}
