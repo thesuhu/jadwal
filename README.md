@@ -1,5 +1,9 @@
 # Jadwal (To Do)
 
+
+[![npm](https://img.shields.io/npm/v/jadwal.svg?style=flat-square)](https://www.npmjs.com/package/jadwal)
+[![license](https://img.shields.io/github/license/thesuhu/jadwal?style=flat-square)](https://github.com/thesuhu/jadwal/blob/master/LICENSE)
+
 Personal to-do list, organized as a simple, yet effective tool for task management. Using `todo.txt` file to store data with [todo.txt](https://github.com/todotxt/todo.txt) format rule.
 
 <img src="https://raw.githubusercontent.com/todotxt/todo.txt/master/description.svg" width="100%" height="100%">
