@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const { addTodo, listTodos, doneTodo, syncWithGit, deleteTodo } = require('.');
+const { addTodo, listTodos, doneTodo, syncWithGit, 
+    revealInExplorer, deleteTodo, updateTodo } = require('.');
 const { errorConsole, logConsole } = require('@thesuhu/colorconsole');
 
 const command = process.argv[2];
@@ -43,7 +44,7 @@ async function main() {
             const oldDescription = options['old-description'] || options.o; // Terima juga -o
 
             if (!oldDescription) {
-                console.error("Please provide the old description using --old-description or -o.");
+                console.error("Please provide the old description using \x1b[33m--old-description\x1b[0m or \x1b[33m-o\x1b[0m.");
                 break;
             }
 
@@ -81,52 +82,57 @@ async function main() {
         case 'sync':
             await syncWithGit();
             break;
+        case 'reveal':
+            await revealInExplorer();
+            break;
         case 'help':
             if (args[0] === 'add') {
-                console.log('Usage: jadwal add --description <text> [options]');
+                console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32madd\x1b[0m \x1b[33m--description <text>\x1b[0m [options]');
                 console.log('Options:');
-                console.log('  --description, -d <text>  Description of the task (required)');
-                console.log('  --priority, -p <A-Z>      Priority of the task (optional)');
-                console.log('  --creation-date, -c <date> Creation date of the task (optional)');
-                console.log('  --completion-date, -C <date> Completion date of the task (optional)');
-                console.log('  --project, -P <tag>        Project tag for the task (optional)');
-                console.log('  --context, -t <tag>        Context tag for the task (optional)');
-                console.log('  --special-tag, -s <tag>:<value>   Special tag for the task (optional)');
+                console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          Description of the task (required)');
+                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
+                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
+                console.log('  \x1b[33m--completion-date\x1b[0m, \x1b[33m-C\x1b[0m <date>      Completion date of the task (optional)');
+                console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
+                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
+                console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
             } else if (args[0] === 'update') {
-                console.log('Usage: jadwal update (--old-description|-o) <text> --description <text> [options]'); // Menambahkan -o
+                console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32mupdate\x1b[0m (\x1b[33m--old-description\x1b[0m|\x1b[33m-o\x1b[0m) <text> \x1b[33m--description\x1b[0m <text> [options]');
                 console.log('Options:');
-                console.log('  --old-description, -o <text>  Old description of the task (required)'); // Menambahkan -o
-                console.log('  --description, -d <text>  New description of the task (required)');
-                console.log('  --priority, -p <A-Z>        Priority of the task (optional)');
-                console.log('  --creation-date, -c <date> Creation date of the task (optional)');
-                console.log('  --completion-date, -C <date> Completion date of the task (optional)');
-                console.log('  --project, -P <tag>          Project tag for the task (optional)');
-                console.log('  --context, -t <tag>          Context tag for the task (optional)');
-                console.log('  --special-tag, -s <tag>:<value>   Special tag for the task (optional)');
+                console.log('  \x1b[33m--old-description\x1b[0m, \x1b[33m-o\x1b[0m <text>      Old description of the task (required)');
+                console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          New description of the task (optional)');
+                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
+                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
+                console.log('  \x1b[33m--completion-date\x1b[0m, \x1b[33m-C\x1b[0m <date>      Completion date of the task (optional)');
+                console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
+                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
+                console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
             } else if (args[0] === 'delete') {
-                console.log('Usage: jadwal delete <description>');
+                console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32mdelete\x1b[0m <description>');
                 console.log('  <description>  Description of the todo to delete (required)');
-            } else {
+            }
+            else {
                 console.log('Available commands:');
-                console.log('  add     - Add a new todo');
-                console.log('  update  - Update an existing todo');
-                console.log('  delete  - Delete a todo');
-                console.log('  list    - List all todos');
-                console.log('  done    - Mark a todo as done');
-                console.log('  sync    - Sync todos with Git');
-                console.log('  help    - Show this help message');
+                console.log('  \x1b[32madd\x1b[0m     - Add a new todo');
+                console.log('  \x1b[32mupdate\x1b[0m  - Update an existing todo');
+                console.log('  \x1b[32mdelete\x1b[0m  - Delete a todo');
+                console.log('  \x1b[32mlist\x1b[0m    - List all todos');
+                console.log('  \x1b[32mdone\x1b[0m    - Mark a todo as done');
+                console.log('  \x1b[32msync\x1b[0m    - Sync todos with Git');
+                console.log('  \x1b[32mreveal\x1b[0m  -  Reveal todo.txt in explorer');
+                console.log('  \x1b[32mhelp\x1b[0m    - Show this help message');
                 console.log(''); // Empty line
                 console.log('For more detailed information on a specific command, use:');
-                console.log('  jadwal help <command>');
+                console.log('  \x1b[36mjadwal\x1b[0m \x1b[32mhelp\x1b[0m <command>');
                 console.log('');
                 console.log('  For example:');
-                console.log('    jadwal help add');
-                console.log('    jadwal help update');
-                console.log('    jadwal help delete');
+                console.log('    \x1b[36mjadwal\x1b[0m \x1b[32mhelp add\x1b[0m');
+                console.log('    \x1b[36mjadwal\x1b[0m \x1b[32mhelp update\x1b[0m');
+                console.log('    \x1b[36mjadwal\x1b[0m \x1b[32mhelp delete\x1b[0m');
             }
             break;
         default:
-            console.error("Hmm, not sure what you mean. Type 'jadwal help' for a list of available commands.");
+            console.error("Hmm, not sure what you mean. Type '\x1b[36mjadwal\x1b[0m \x1b[32mhelp\x1b[0m' for a list of available commands.");
     }
 }
 
@@ -135,12 +141,13 @@ function validateOptions(options, isUpdate = false) {
 
     // Jika ini adalah operasi update, maka 'old-description' juga valid
     if (isUpdate) {
+        validOptions.push('o');
         validOptions.push('old-description');
     }
 
     // Jika ini bukan operasi update (yaitu operasi add), deskripsi wajib ada
     if (!isUpdate && !options.d && !options['description']) {
-        throw new Error('Description is mandatory.');
+        throw new Error('Description is mandatory. Please provide description using \x1b[33m--description\x1b[0m or \x1b[33m-d\x1b[0m option.');
     }
 
     for (const key in options) {

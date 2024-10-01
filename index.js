@@ -3,13 +3,15 @@ const path = require('path');
 const simpleGit = require('simple-git');
 const { errorConsole, logConsole } = require('@thesuhu/colorconsole');
 const readlineSync = require('readline-sync');
+const os = require('os');
+const { exec } = require('child_process');
 
 require('dotenv').config();
 
 const LOCAL_REPO = process.env.LOCAL_REPO;
 const REMOTE_GIT = process.env.REMOTE_GIT;
 if (!LOCAL_REPO) {
-    console.error('Error: TODO_LOCAL_REPO environment variable is not set.');
+    errorConsole('Error: LOCAL_REPO environment variable is not set.');
     process.exit(1); // Menghentikan eksekusi skrip dengan kode kesalahan
 }
 
@@ -31,6 +33,33 @@ async function writeTodos(todos) {
         await fs.writeFile(todoFile, data, 'utf8');
     } catch (error) {
         errorConsole('Error writing todos: ' + error.message, false);
+    }
+}
+
+async function revealInExplorer() {
+    try {
+        const platform = os.platform();
+        let command;
+
+        if (platform === 'win32') {
+            command = `explorer /select,"${todoFile}"`;
+        } else if (platform === 'darwin') {
+            command = `open -R "${todoFile}"`;
+        } else if (platform === 'linux') {
+            // Perintah untuk Linux bisa bervariasi tergantung pada file manager yang digunakan
+            command = `xdg-open "${path.dirname(todoFile)}"`; // Contoh dengan xdg-open
+        } else {
+            throw new Error('Operating system not supported.');
+        }
+
+        exec(command, (error, stdout, stderr) => {
+            // if (error) {
+            //     throw error;
+            // }
+            logConsole('todo.txt file revealed in explorer.', false);
+        });
+    } catch (error) {
+        errorConsole('Error revealing todo.txt file in explorer: ' + error.message, false);
     }
 }
 
@@ -61,20 +90,58 @@ async function updateTodo(oldTodoDesc, newTodo) {
         const todos = await readTodos();
         const updatedTodos = todos.map(todo => {
             if (todo.includes(oldTodoDesc)) {
+                // Mendapatkan data todo lama
+                const oldTodoParts = todo.split(' ');
+
+                const specialTagRegex = /^(.+?):(.+)$/; // Mencocokkan pola <tag>:<value>
+                const specialTagPart = oldTodoParts.find(part => specialTagRegex.test(part));
+                const specialTagMatch = specialTagPart?.match(specialTagRegex);
+
+                const oldTodo = {
+                    C: newTodo.C || oldTodoParts.find(part => part.startsWith('x'))?.substring(2),
+                    p: newTodo.p || oldTodoParts.find(part => part.startsWith('(') && part.endsWith(')'))?.slice(1, -1),
+                    c: newTodo.c || oldTodoParts.find(part => /^\d{4}-\d{2}-\d{2}$/.test(part)), // Gunakan newTodo.c jika ada
+                    d: oldTodoParts
+                        .filter(part =>
+                            !/[x+@]/.test(part) &&
+                            !part.startsWith('(') &&
+                            !part.endsWith(')') &&
+                            !specialTagRegex.test(part)
+                        )
+                        .join(' '),
+                    P: newTodo.P || oldTodoParts.find(part => part.startsWith('+'))?.substring(1), // Gunakan newTodo.P jika ada
+                    t: newTodo.t || oldTodoParts.find(part => part.startsWith('@'))?.substring(1), // Gunakan newTodo.t jika ada
+                    s: newTodo.s || (specialTagMatch ? `${specialTagMatch[1]}:${specialTagMatch[2]}` : undefined) // Gunakan newTodo.s jika ada
+                };
+
+                // Menggabungkan data todo lama dan baru
+                const mergedTodo = {
+                    C: newTodo.C || oldTodo.C,
+                    p: newTodo.p || oldTodo.p,
+                    c: newTodo.c || oldTodo.c,
+                    d: newTodo.d || oldTodo.d,
+                    P: newTodo.P || oldTodo.P,
+                    t: newTodo.t || oldTodo.t,
+                    s: newTodo.s || oldTodo.s
+                };
                 const updatedTodo = [
-                    newTodo.C ? `x ${newTodo.C}` : '',
-                    newTodo.p ? `(${newTodo.p})` : '',
-                    newTodo.c ? newTodo.c : '',
-                    newTodo.d,
-                    newTodo.P ? `+${newTodo.P}` : '',
-                    newTodo.t ? `@${newTodo.t}` : '',
-                    newTodo.s ? newTodo.s : ''
+                    mergedTodo.C ? `x ${mergedTodo.C}` : '',
+                    mergedTodo.p ? `(${mergedTodo.p})` : '',
+                    mergedTodo.c ? `${mergedTodo.c}` : '', 
+                    mergedTodo.d,
+                    mergedTodo.P ? `+${mergedTodo.P}` : '',
+                    mergedTodo.t ? `@${mergedTodo.t}` : '',
+                    mergedTodo.s || ''
                 ].filter(Boolean).join(' ');
                 return updatedTodo;
+            } else {
+                errorConsole(`Old description: '${oldTodoDesc}' not found`, false);
+                return false;
             }
-            return todo;
         });
-
+        if (!updatedTodos[0]) {
+            return;
+        }
         await writeTodos(updatedTodos);
         logConsole('Todo updated successfully.', false);
     } catch (error) {
@@ -137,6 +204,9 @@ async function listTodos() {
 
 async function syncWithGit() {
     try {
+        if (!REMOTE_GIT) {
+            throw new Error('Error: REMOTE_GIT environment variable is not set.');
+        }
         const git = simpleGit(REMOTE_GIT);
         await git.pull();
         await git.add('.');
@@ -154,5 +224,6 @@ module.exports = {
     doneTodo,
     syncWithGit,
     updateTodo,
-    deleteTodo
+    deleteTodo,
+    revealInExplorer
 };

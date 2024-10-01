@@ -138,7 +138,17 @@ Both examples will add a new todo with the following attributes:
 - Context Tag: Office
 - Special Tag: reminder:2024-09-25
 
-`jadwal update` - Update an existing todo. Use jadwal help update for detailed usage.
+`jadwal update` - Update an existing todo. Use jadwal help update for detailed usage. Below is example to update data with adding completion data, new description and priority attributes. And don't forget to provide `old description` as key for updating existing data.
+
+```sh
+jadwal update \
+    -d "Update finish report" \
+    -p B \
+    -c 2024-09-20 \
+    -o "Finish report"
+```
+
+For long option and Windows commands, see the example in `add` section above.
 
 `jadwal delete` - Delete a todo. Use jadwal help delete for detailed usage.
 
