@@ -54,7 +54,6 @@ async function main() {
                     d: options.d || options['description'],
                     p: options.p || options['priority'],
                     c: options.c || options['creation-date'],
-                    C: options.C || options['completion-date'],
                     P: options.P || options['project'],
                     t: options.t || options['context'],
                     s: options.s || options['special-tag']
@@ -92,7 +91,6 @@ async function main() {
                 console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          Description of the task (required)');
                 console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
                 console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
-                console.log('  \x1b[33m--completion-date\x1b[0m, \x1b[33m-C\x1b[0m <date>      Completion date of the task (optional)');
                 console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
                 console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
                 console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
@@ -103,7 +101,6 @@ async function main() {
                 console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          New description of the task (optional)');
                 console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
                 console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
-                console.log('  \x1b[33m--completion-date\x1b[0m, \x1b[33m-C\x1b[0m <date>      Completion date of the task (optional)');
                 console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
                 console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
                 console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
@@ -119,7 +116,7 @@ async function main() {
                 console.log('  \x1b[32mlist\x1b[0m    - List all todos');
                 console.log('  \x1b[32mdone\x1b[0m    - Mark a todo as done');
                 console.log('  \x1b[32msync\x1b[0m    - Sync todos with Git');
-                console.log('  \x1b[32mreveal\x1b[0m  -  Reveal todo.txt in explorer');
+                console.log('  \x1b[32mreveal\x1b[0m  - Reveal todo.txt in explorer');
                 console.log('  \x1b[32mhelp\x1b[0m    - Show this help message');
                 console.log(''); // Empty line
                 console.log('For more detailed information on a specific command, use:');

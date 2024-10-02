@@ -158,6 +158,8 @@ For long option and Windows commands, see the example in `add` section above.
 
 `jadwal sync` - Sync todos with Git.
 
+`jadwal reveal` - Reveal todo.txt in explorer.
+
 `jadwal help` - Show the general help message.
 
 `jadwal help <command>` - Show detailed help for a specific command (e.g., `jadwal help add`).
