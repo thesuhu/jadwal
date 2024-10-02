@@ -66,7 +66,7 @@ async function main() {
         case 'delete': {
             const description = args[0];
             if (!description) {
-                console.error("Please provide the description of the todo to delete.");
+                console.error("Please provide the description using \x1b[33m--description\x1b[0m or \x1b[33m-d\x1b[0m to delete.");
                 break;
             }
             await deleteTodo(description);
@@ -76,7 +76,12 @@ async function main() {
             await listTodos();
             break;
         case 'done':
-            await doneTodo(args[0]);
+            const description = args[0];
+            if (!description) {
+                console.error("Please provide the description using \x1b[33m--description\x1b[0m or \x1b[33m-d\x1b[0m to mark as done.");
+                break;
+            }
+            await doneTodo(description);
             break;
         case 'sync':
             await syncWithGit();

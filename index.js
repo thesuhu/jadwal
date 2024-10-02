@@ -311,11 +311,55 @@ async function deleteTodo(todoDesc) {
     }
 }
 
-async function doneTodo(partialDescription) {
+async function doneTodo(todoDesc) {
     try {
         const todos = await readTodos();
-        const updatedTodos = todos.map(todo => {
-            if (todo.includes(partialDescription) && !todo.startsWith('x ')) {
+        const matchingTodos = todos.filter(todo => todo.includes(todoDesc));
+
+        if (matchingTodos.length === 0) {
+            errorConsole(`Old description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
+            return;
+        }
+
+        if (matchingTodos.length > 1) {
+            errorConsole(`Multiple todos found with description: '\x1b[33m${todoDesc}\x1b[0m'. Mark as done aborted.`, false);
+            matchingTodos.forEach(todo => {
+                const parts = todo.split(' ');
+                const coloredParts = [];
+
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (part.startsWith('x')) { // Status
+                        coloredParts.push(`\x1b[90m${part}\x1b[0m`); // Abu-abu
+                    } else if (part.startsWith('(')) { // Prioritas
+                        coloredParts.push(`\x1b[33m${part}\x1b[0m`); // Kuning
+                    } else if (/^\d{4}-\d{2}-\d{2}$/.test(part)) { // Tanggal Selesai atau Tanggal Dibuat
+                        if (i === 0 || parts[i - 1].startsWith('x')) { // Jika di awal atau setelah 'x' (Status), maka Tanggal Selesai
+                            coloredParts.push(`\x1b[36m${part}\x1b[0m`); // Cyan
+                        } else { // Jika tidak, maka Tanggal Dibuat
+                            coloredParts.push(`\x1b[96m${part}\x1b[0m`); // Biru muda
+                        }
+                    } else if (part.startsWith('+')) { // Project Tag
+                        coloredParts.push(`\x1b[32m${part}\x1b[0m`); // Hijau
+                    } else if (part.startsWith('@')) { // Context Tag
+                        coloredParts.push(`\x1b[34m${part}\x1b[0m`); // Biru
+                    } else if (/:/.test(part)) { // Special Tag
+                        coloredParts.push(`\x1b[35m${part}\x1b[0m`); // Magenta
+                    } else { // Deskripsi
+                        coloredParts.push(part); // Tidak diberi warna
+                    }
+                }
+                console.log(coloredParts.join(' '));
+            });
+            return;
+        }
+
+        if (!readlineSync.keyInYN('Are you sure you want to mark as done this todo?')) {
+            return;
+        }
+
+        const updatedTodos = todos.filter(todo => {
+            if (todo.includes(todoDesc) && !todo.startsWith('x ')) {
                 return `x ${todo}`;
             }
             return todo;
@@ -373,11 +417,28 @@ async function syncWithGit() {
         if (!REMOTE_GIT) {
             throw new Error('Error: REMOTE_GIT environment variable is not set.');
         }
-        const git = simpleGit(REMOTE_GIT);
-        await git.pull();
+        if (!LOCAL_REPO) {
+            throw new Error('Error: LOCAL_REPO environment variable is not set.');
+        }
+        if (!fs.existsSync(LOCAL_REPO)) {
+            throw new Error(`Error: Local repository directory does not exist: ${LOCAL_REPO}`);
+        }
+
+        const git = simpleGit(LOCAL_REPO);
+        
+        console.log('Pulling latest changes from remote repository...');
+        await git.pull('origin', 'main');
+        
+        console.log('Adding changes to staging area...');
         await git.add('.');
-        await git.commit('Update todo.txt');
+        
+        let utcDateTime = new Date().toJSON();
+        console.log('Committing changes...');
+        await git.commit('Update todo.txt - ' + utcDateTime);
+        
+        console.log('Pushing changes to remote repository...');
         await git.push('origin', 'main');
+        
         logConsole('Synced with git repository.', false);
     } catch (error) {
         errorConsole('Error syncing with git: ' + error.message, false);
