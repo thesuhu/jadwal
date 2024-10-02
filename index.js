@@ -96,8 +96,10 @@ async function addTodo(todo) {
 // async function updateTodo(oldTodoDesc, newTodo) {
 //     try {
 //         const todos = await readTodos();
+//         let found = false;
 //         const updatedTodos = todos.map(todo => {
 //             if (todo.includes(oldTodoDesc)) {
+//                 found = true;
 //                 // Mendapatkan data todo lama
 //                 const oldTodoParts = todo.split(' ');
 
@@ -120,7 +122,6 @@ async function addTodo(todo) {
 //                     s: (specialTagMatch ? `${specialTagMatch[1]}:${specialTagMatch[2]}` : undefined) // Gunakan newTodo.s jika ada
 //                 };
 
-//                 // console.log(oldTodo);
 //                 // Menggabungkan data todo lama dan baru
 //                 const mergedTodo = {
 //                     p: newTodo.p || oldTodo.p,
@@ -139,17 +140,17 @@ async function addTodo(todo) {
 //                     mergedTodo.t ? `@${mergedTodo.t}` : '',
 //                     mergedTodo.s || ''
 //                 ].filter(Boolean).join(' ');
-//                 // console.log(updatedTodo);
 //                 return updatedTodo;
 //             } else {
-//                 errorConsole(`Old description: '${oldTodoDesc}' not found`, false);
-//                 return false;
+//                 return todo;
 //             }
 //         });
-//         if (!updatedTodos[0]) {
+
+//         if (!found) {
+//             errorConsole(`Old description: '${oldTodoDesc}' not found`, false);
 //             return;
 //         }
-//         // console.log(updatedTodos);
+
 //         await writeTodos(updatedTodos);
 //         logConsole('Todo updated successfully.', false);
 //     } catch (error) {
@@ -160,10 +161,48 @@ async function addTodo(todo) {
 async function updateTodo(oldTodoDesc, newTodo) {
     try {
         const todos = await readTodos();
-        let found = false;
+        const matchingTodos = todos.filter(todo => todo.includes(oldTodoDesc));
+
+        if (matchingTodos.length === 0) {
+            errorConsole(`Old description: '\x1b[33m${oldTodoDesc}\x1b[0m' not found`, false);
+            return;
+        }
+
+        if (matchingTodos.length > 1) {
+            errorConsole(`Multiple todos found with description: '\x1b[33m${oldTodoDesc}\x1b[0m'. Update aborted.`, false);
+            matchingTodos.forEach(todo => {
+                const parts = todo.split(' ');
+                const coloredParts = [];
+
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (part.startsWith('x')) { // Status
+                        coloredParts.push(`\x1b[90m${part}\x1b[0m`); // Abu-abu
+                    } else if (part.startsWith('(')) { // Prioritas
+                        coloredParts.push(`\x1b[33m${part}\x1b[0m`); // Kuning
+                    } else if (/^\d{4}-\d{2}-\d{2}$/.test(part)) { // Tanggal Selesai atau Tanggal Dibuat
+                        if (i === 0 || parts[i - 1].startsWith('x')) { // Jika di awal atau setelah 'x' (Status), maka Tanggal Selesai
+                            coloredParts.push(`\x1b[36m${part}\x1b[0m`); // Cyan
+                        } else { // Jika tidak, maka Tanggal Dibuat
+                            coloredParts.push(`\x1b[96m${part}\x1b[0m`); // Biru muda
+                        }
+                    } else if (part.startsWith('+')) { // Project Tag
+                        coloredParts.push(`\x1b[32m${part}\x1b[0m`); // Hijau
+                    } else if (part.startsWith('@')) { // Context Tag
+                        coloredParts.push(`\x1b[34m${part}\x1b[0m`); // Biru
+                    } else if (/:/.test(part)) { // Special Tag
+                        coloredParts.push(`\x1b[35m${part}\x1b[0m`); // Magenta
+                    } else { // Deskripsi
+                        coloredParts.push(part); // Tidak diberi warna
+                    }
+                }
+                console.log(coloredParts.join(' '));
+            });
+            return;
+        }
+
         const updatedTodos = todos.map(todo => {
             if (todo.includes(oldTodoDesc)) {
-                found = true;
                 // Mendapatkan data todo lama
                 const oldTodoParts = todo.split(' ');
 
@@ -210,11 +249,6 @@ async function updateTodo(oldTodoDesc, newTodo) {
             }
         });
 
-        if (!found) {
-            errorConsole(`Old description: '${oldTodoDesc}' not found`, false);
-            return;
-        }
-
         await writeTodos(updatedTodos);
         logConsole('Todo updated successfully.', false);
     } catch (error) {
@@ -228,9 +262,40 @@ async function deleteTodo(todoDesc) {
         const matchingTodos = todos.filter(todo => todo.includes(todoDesc));
 
         if (matchingTodos.length === 0) {
-            throw new Error('No todo found with the given description.');
-        } else if (matchingTodos.length > 1) {
-            errorConsole('Multiple todos found with the given description. Please refine your search.', false);
+            errorConsole(`Old description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
+            return;
+        }
+
+        if (matchingTodos.length > 1) {
+            errorConsole(`Multiple todos found with description: '\x1b[33m${todoDesc}\x1b[0m'. Delete aborted.`, false);
+            matchingTodos.forEach(todo => {
+                const parts = todo.split(' ');
+                const coloredParts = [];
+
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (part.startsWith('x')) { // Status
+                        coloredParts.push(`\x1b[90m${part}\x1b[0m`); // Abu-abu
+                    } else if (part.startsWith('(')) { // Prioritas
+                        coloredParts.push(`\x1b[33m${part}\x1b[0m`); // Kuning
+                    } else if (/^\d{4}-\d{2}-\d{2}$/.test(part)) { // Tanggal Selesai atau Tanggal Dibuat
+                        if (i === 0 || parts[i - 1].startsWith('x')) { // Jika di awal atau setelah 'x' (Status), maka Tanggal Selesai
+                            coloredParts.push(`\x1b[36m${part}\x1b[0m`); // Cyan
+                        } else { // Jika tidak, maka Tanggal Dibuat
+                            coloredParts.push(`\x1b[96m${part}\x1b[0m`); // Biru muda
+                        }
+                    } else if (part.startsWith('+')) { // Project Tag
+                        coloredParts.push(`\x1b[32m${part}\x1b[0m`); // Hijau
+                    } else if (part.startsWith('@')) { // Context Tag
+                        coloredParts.push(`\x1b[34m${part}\x1b[0m`); // Biru
+                    } else if (/:/.test(part)) { // Special Tag
+                        coloredParts.push(`\x1b[35m${part}\x1b[0m`); // Magenta
+                    } else { // Deskripsi
+                        coloredParts.push(part); // Tidak diberi warna
+                    }
+                }
+                console.log(coloredParts.join(' '));
+            });
             return;
         }
 
