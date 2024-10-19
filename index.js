@@ -1,3 +1,4 @@
+require('dotenv').config();
 const fs = require('fs-extra');
 const path = require('path');
 const simpleGit = require('simple-git');
@@ -6,13 +7,61 @@ const readlineSync = require('readline-sync');
 const os = require('os');
 const { spawn } = require('child_process');
 
-require('dotenv').config();
+const LOCAL_REPO = process.env.LOCAL_REPO || '';
+const REMOTE_GIT = process.env.REMOTE_GIT || '';
 
-const LOCAL_REPO = process.env.LOCAL_REPO;
-const REMOTE_GIT = process.env.REMOTE_GIT;
+function isValidPath(path) {
+    return fs.existsSync(path);
+}
+
+async function isValidGitURL(url) {
+    const git = simpleGit();
+    try {
+        await git.listRemote([url]);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+
+function setEnvVariable(key, value) {
+    process.env[key] = value;
+
+    const platform = os.platform();
+    if (platform === 'win32') {
+        const setEnvCommand = `[System.Environment]::SetEnvironmentVariable('${key}', '${value}', 'User')`;
+        const child = spawn('powershell.exe', ['-Command', setEnvCommand], { stdio: 'inherit' });
+        child.on('exit', () => {
+            console.log(`Environment variable \x1b[33m${key}\x1b[0m set permanently on Windows.`);
+            console.log('Please restart your terminal to apply the changes.');
+        });
+    } else if (platform === 'darwin' || platform === 'linux' || platform === 'android') {
+        const shellProfile = platform === 'darwin' ? '~/.zshrc' : '~/.bashrc';
+        const profilePath = path.resolve(os.homedir(), shellProfile);
+        const exportCommand = `export ${key}=${value}\n`;
+        fs.appendFileSync(profilePath, exportCommand);
+        console.log(`Environment variable \x1b[33m${key}\x1b[0m set permanently on \x1b[33m${platform === 'darwin' ? 'Mac' : platform === 'linux' ? 'Linux' : 'Termux'}\x1b[0m.`);
+        console.log('Please restart your terminal to apply the changes.');
+    }
+}
+
 if (!LOCAL_REPO) {
-    errorConsole('Error: LOCAL_REPO environment variable is not set.');
-    process.exit(1); // Menghentikan eksekusi skrip dengan kode kesalahan
+    const input = readlineSync.question(`\x1b[33mLOCAL_REPO\x1b[0m environment variable is not set. Please provide the local repository path: `);
+    if (!isValidPath(input)) {
+        errorConsole('Provided path is not valid.', false);
+        process.exit(1);
+    }
+    setEnvVariable('LOCAL_REPO', input);
+}
+
+if (!REMOTE_GIT) {
+    const input = readlineSync.question(`\x1b[33mREMOTE_GIT\x1b[0m environment variable is not set. Please provide the remote Git URL: `);
+    if (!isValidGitURL(input) || !input.endsWith('.git')) {
+        errorConsole('Provided URL is not valid.', false);
+        process.exit(1);
+    }
+    setEnvVariable('REMOTE_GIT', input);
 }
 
 const todoFile = path.join(LOCAL_REPO, 'todo.txt');
@@ -425,22 +474,22 @@ async function syncWithGit() {
         }
 
         const git = simpleGit(LOCAL_REPO);
-        
+
         console.log('Pulling latest changes from remote repository...');
         await git.pull('origin', 'main');
-        
+
         const status = await git.status();
         if (status.files.length > 0) {
             console.log('Adding changes to staging area...');
             await git.add('.');
-            
+
             let utcDateTime = new Date().toJSON();
             console.log('Committing changes...');
             await git.commit('Update todo.txt - ' + utcDateTime);
-            
+
             console.log('Pushing changes to remote repository...');
             await git.push('origin', 'main');
-            
+
             logConsole('Synced with git repository.', false);
         } else {
             console.log('No changes to commit.');
