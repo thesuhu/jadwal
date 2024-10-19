@@ -429,17 +429,22 @@ async function syncWithGit() {
         console.log('Pulling latest changes from remote repository...');
         await git.pull('origin', 'main');
         
-        console.log('Adding changes to staging area...');
-        await git.add('.');
-        
-        let utcDateTime = new Date().toJSON();
-        console.log('Committing changes...');
-        await git.commit('Update todo.txt - ' + utcDateTime);
-        
-        console.log('Pushing changes to remote repository...');
-        await git.push('origin', 'main');
-        
-        logConsole('Synced with git repository.', false);
+        const status = await git.status();
+        if (status.files.length > 0) {
+            console.log('Adding changes to staging area...');
+            await git.add('.');
+            
+            let utcDateTime = new Date().toJSON();
+            console.log('Committing changes...');
+            await git.commit('Update todo.txt - ' + utcDateTime);
+            
+            console.log('Pushing changes to remote repository...');
+            await git.push('origin', 'main');
+            
+            logConsole('Synced with git repository.', false);
+        } else {
+            console.log('No changes to commit.');
+        }
     } catch (error) {
         errorConsole('Error syncing with git: ' + error.message, false);
     }
