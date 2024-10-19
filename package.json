@@ -1,6 +1,6 @@
 {
   "name": "jadwal",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Personal to-do list, organized as a simple, yet effective tool for task management",
   "main": "index.js",
   "bin": {
