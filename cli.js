@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { addTodo, listTodos, doneTodo, syncWithGit, 
+const { addTodo, listTodos, doneTodo, syncWithGit,
     revealInExplorer, deleteTodo, updateTodo } = require('.');
 const { errorConsole, logConsole } = require('@thesuhu/colorconsole');
 
@@ -94,21 +94,34 @@ async function main() {
                 console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32madd\x1b[0m \x1b[33m--description <text>\x1b[0m [options]');
                 console.log('Options:');
                 console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          Description of the task (required)');
-                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
-                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal add -d "Complete report"\x1b[0m');
+                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional, A is highest)');
+                console.log('                                      e.g., \x1b[36mjadwal add -p A\x1b[0m');
+                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional, format YYYY-MM-DD)');
+                console.log('                                      e.g., \x1b[36mjadwal add -c 2025-01-01\x1b[0m');
                 console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
-                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal add -P +office_task\x1b[0m');
+                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional, supports multiple)');
+                console.log('                                      e.g., \x1b[36mjadwal add -t work home\x1b[0m');
                 console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal add -s estimated:2h\x1b[0m');
             } else if (args[0] === 'update') {
                 console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32mupdate\x1b[0m (\x1b[33m--old-description\x1b[0m|\x1b[33m-o\x1b[0m) <text> \x1b[33m--description\x1b[0m <text> [options]');
                 console.log('Options:');
                 console.log('  \x1b[33m--old-description\x1b[0m, \x1b[33m-o\x1b[0m <text>      Old description of the task (required)');
+                console.log('                                      e.g., \x1b[36mjadwal update -o "Complete report"\x1b[0m');
                 console.log('  \x1b[33m--description\x1b[0m, \x1b[33m-d\x1b[0m <text>          New description of the task (optional)');
-                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional)');
-                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal update -d "Finalize presentation"\x1b[0m');
+                console.log('  \x1b[33m--priority\x1b[0m, \x1b[33m-p\x1b[0m <A-Z>              Priority of the task (optional, A is highest)');
+                console.log('                                      e.g., \x1b[36mjadwal update -p B\x1b[0m');
+                console.log('  \x1b[33m--creation-date\x1b[0m, \x1b[33m-c\x1b[0m <date>        Creation date of the task (optional, format YYYY-MM-DD)');
+                console.log('                                      e.g., \x1b[36mjadwal update -c 2025-01-02\x1b[0m');
                 console.log('  \x1b[33m--project\x1b[0m, \x1b[33m-P\x1b[0m <tag>               Project tag for the task (optional)');
-                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal update -P +personal_task\x1b[0m');
+                console.log('  \x1b[33m--context\x1b[0m, \x1b[33m-t\x1b[0m <tag>               Context tag for the task (optional, supports multiple)');
+                console.log('                                      e.g., \x1b[36mjadwal update -t "remote meeting"\x1b[0m');
                 console.log('  \x1b[33m--special-tag\x1b[0m, \x1b[33m-s\x1b[0m <tag>:<value>   Special tag for the task (optional)');
+                console.log('                                      e.g., \x1b[36mjadwal update -s duration:3h\x1b[0m');
             } else if (args[0] === 'delete') {
                 console.log('Usage: \x1b[36mjadwal\x1b[0m \x1b[32mdelete\x1b[0m <description>');
                 console.log('  <description>  Description of the todo to delete (required)');

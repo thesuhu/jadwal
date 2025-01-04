@@ -124,13 +124,12 @@ async function addTodo(todo) {
         const todos = await readTodos();
         let todayDate = new Date().toISOString().slice(0, 10); // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
         const newTodo = [
-            // todo.C ? `x` : '',
             todo.p ? `(${todo.p})` : '',
             todo.C ? `${todo.C}` : '',
             todo.c ? todo.c : todayDate,
             todo.d,
             todo.P ? `+${todo.P}` : '',
-            todo.t ? `@${todo.t}` : '',
+            ...(todo.t ? todo.t.split(' ').map(ctx => `@${ctx}`) : []), // Mendukung multi-context
             todo.s || ''
         ].filter(Boolean).join(' ');
 
@@ -141,71 +140,6 @@ async function addTodo(todo) {
         errorConsole('Error adding todo: ' + error.message, false);
     }
 }
-
-// async function updateTodo(oldTodoDesc, newTodo) {
-//     try {
-//         const todos = await readTodos();
-//         let found = false;
-//         const updatedTodos = todos.map(todo => {
-//             if (todo.includes(oldTodoDesc)) {
-//                 found = true;
-//                 // Mendapatkan data todo lama
-//                 const oldTodoParts = todo.split(' ');
-
-//                 const specialTagRegex = /^(.+?):(.+)$/; // Mencocokkan pola <tag>:<value>
-//                 const specialTagPart = oldTodoParts.find(part => specialTagRegex.test(part));
-//                 const specialTagMatch = specialTagPart?.match(specialTagRegex);
-
-//                 const oldTodo = {
-//                     p: oldTodoParts.find(part => part.startsWith('(') && part.endsWith(')'))?.slice(1, -1),
-//                     c: oldTodoParts.find(part => /^\d{4}-\d{2}-\d{2}$/.test(part)), // Gunakan newTodo.c jika ada
-//                     d: oldTodoParts.filter(part =>
-//                         !/^\d{4}-\d{2}-\d{2}$/.test(part) && // Abaikan bagian yang merupakan tanggal
-//                         !/[x+@]/.test(part) &&
-//                         !part.startsWith('(') &&
-//                         !part.endsWith(')') &&
-//                         !specialTagRegex.test(part)
-//                     ).join(' '),
-//                     P: oldTodoParts.find(part => part.startsWith('+'))?.substring(1), // Gunakan newTodo.P jika ada
-//                     t: oldTodoParts.find(part => part.startsWith('@'))?.substring(1), // Gunakan newTodo.t jika ada
-//                     s: (specialTagMatch ? `${specialTagMatch[1]}:${specialTagMatch[2]}` : undefined) // Gunakan newTodo.s jika ada
-//                 };
-
-//                 // Menggabungkan data todo lama dan baru
-//                 const mergedTodo = {
-//                     p: newTodo.p || oldTodo.p,
-//                     c: newTodo.c || oldTodo.c,
-//                     d: newTodo.d || oldTodo.d,
-//                     P: newTodo.P || oldTodo.P,
-//                     t: newTodo.t || oldTodo.t,
-//                     s: newTodo.s || oldTodo.s
-//                 };
-
-//                 const updatedTodo = [
-//                     mergedTodo.p ? `(${mergedTodo.p})` : '',
-//                     mergedTodo.c ? `${mergedTodo.c}` : '',
-//                     mergedTodo.d,
-//                     mergedTodo.P ? `+${mergedTodo.P}` : '',
-//                     mergedTodo.t ? `@${mergedTodo.t}` : '',
-//                     mergedTodo.s || ''
-//                 ].filter(Boolean).join(' ');
-//                 return updatedTodo;
-//             } else {
-//                 return todo;
-//             }
-//         });
-
-//         if (!found) {
-//             errorConsole(`Old description: '${oldTodoDesc}' not found`, false);
-//             return;
-//         }
-
-//         await writeTodos(updatedTodos);
-//         logConsole('Todo updated successfully.', false);
-//     } catch (error) {
-//         errorConsole('Error updating todo: ' + error.message, false);
-//     }
-// }
 
 async function updateTodo(oldTodoDesc, newTodo) {
     try {
@@ -255,24 +189,20 @@ async function updateTodo(oldTodoDesc, newTodo) {
                 // Mendapatkan data todo lama
                 const oldTodoParts = todo.split(' ');
 
-                const specialTagRegex = /^(.+?):(.+)$/; // Mencocokkan pola <tag>:<value>
-                const specialTagPart = oldTodoParts.find(part => specialTagRegex.test(part));
-                const specialTagMatch = specialTagPart?.match(specialTagRegex);
-
                 const oldTodo = {
                     p: oldTodoParts.find(part => part.startsWith('(') && part.endsWith(')'))?.slice(1, -1),
-                    c: oldTodoParts.find(part => /^\d{4}-\d{2}-\d{2}$/.test(part)), // Gunakan newTodo.c jika ada
+                    c: oldTodoParts.find(part => /^\d{4}-\d{2}-\d{2}$/.test(part)), // Tanggal Dibuat
                     d: oldTodoParts.filter(part =>
-                        !/^\d{4}-\d{2}-\d{2}$/.test(part) && // Abaikan bagian yang merupakan tanggal
+                        !/^\d{4}-\d{2}-\d{2}$/.test(part) &&
                         !/[x+@]/.test(part) &&
                         !part.startsWith('(') &&
                         !part.endsWith(')') &&
-                        !specialTagRegex.test(part)
+                        !/[^:]+:[^:]+/.test(part)
                     ).join(' '),
-                    P: oldTodoParts.find(part => part.startsWith('+'))?.substring(1), // Gunakan newTodo.P jika ada
-                    t: oldTodoParts.find(part => part.startsWith('@'))?.substring(1), // Gunakan newTodo.t jika ada
-                    s: (specialTagMatch ? `${specialTagMatch[1]}:${specialTagMatch[2]}` : undefined) // Gunakan newTodo.s jika ada
-                };
+                    P: oldTodoParts.find(part => part.startsWith('+'))?.substring(1), // Project Tag
+                    t: oldTodoParts.filter(part => part.startsWith('@')).map(ctx => ctx.substring(1)), // Semua context
+                    s: oldTodoParts.find(part => /[^:]+:[^:]+/.test(part)) // Special Tag
+                };                
 
                 // Menggabungkan data todo lama dan baru
                 const mergedTodo = {
@@ -280,7 +210,7 @@ async function updateTodo(oldTodoDesc, newTodo) {
                     c: newTodo.c || oldTodo.c,
                     d: newTodo.d || oldTodo.d,
                     P: newTodo.P || oldTodo.P,
-                    t: newTodo.t || oldTodo.t,
+                    t: [...(oldTodoParts.filter(part => part.startsWith('@'))), ...(newTodo.t ? newTodo.t.split(' ').map(ctx => `@${ctx}`) : [])],
                     s: newTodo.s || oldTodo.s
                 };
 
@@ -289,9 +219,9 @@ async function updateTodo(oldTodoDesc, newTodo) {
                     mergedTodo.c ? `${mergedTodo.c}` : '',
                     mergedTodo.d,
                     mergedTodo.P ? `+${mergedTodo.P}` : '',
-                    mergedTodo.t ? `@${mergedTodo.t}` : '',
+                    ...(Array.isArray(mergedTodo.t) ? mergedTodo.t : []), // Multi-context
                     mergedTodo.s || ''
-                ].filter(Boolean).join(' ');
+                ].filter(Boolean).join(' ');                
                 return updatedTodo;
             } else {
                 return todo;
@@ -311,7 +241,7 @@ async function deleteTodo(todoDesc) {
         const matchingTodos = todos.filter(todo => todo.includes(todoDesc));
 
         if (matchingTodos.length === 0) {
-            errorConsole(`Old description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
+            errorConsole(`Todo description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
             return;
         }
 
@@ -366,7 +296,7 @@ async function doneTodo(todoDesc) {
         const matchingTodos = todos.filter(todo => todo.includes(todoDesc));
 
         if (matchingTodos.length === 0) {
-            errorConsole(`Old description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
+            errorConsole(`Todo description: '\x1b[33m${todoDesc}\x1b[0m' not found`, false);
             return;
         }
 
